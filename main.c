@@ -6,8 +6,7 @@ int main(int argc, char** argv)
 {
     init_audio_device();
 
-    printf("Press Enter to quit...");
-    getchar();
+    drawWindow();
 
     uninit_audio_device();
 }
