@@ -10,6 +10,11 @@ static ma_device device;
 
 static ma_pcm_rb rb;
 
+#define VISUAL_BUFFER_SIZE 1024
+#define WAVE_AMPLITUDE 100.0f 
+
+static float visualBuffer[VISUAL_BUFFER_SIZE];
+
 bool init_ring_buffer();
 
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
@@ -116,31 +121,46 @@ bool init_ring_buffer() {
     return true;
 }
 
-void printSamples() {
+void updateAudioVisualization() {
     ma_result result;
     ma_uint32 framesAvailable;
-    ma_uint32 framesToRead = 256;
+    ma_uint32 framesToRead = VISUAL_BUFFER_SIZE;
     float* pMappedBuffer;
 
     framesAvailable = ma_pcm_rb_available_read(&rb);
-    if (framesAvailable == 0) {
-        return;  // No new data to read
-    }
+    
+    // If we have enough frames, update the entire visual buffer
+    if (framesAvailable >= VISUAL_BUFFER_SIZE) {
+        result = ma_pcm_rb_acquire_read(&rb, &framesToRead, (void**)&pMappedBuffer);
+        if (result == MA_SUCCESS && framesToRead > 0) {
+            // For multichannel audio, we'll just take the first channel
+            for (ma_uint32 i = 0; i < framesToRead; i++) {
+                if (CAPTURE_CHANNELS > 1) {
+                    // Take only first channel if multichannel
+                    visualBuffer[i] = pMappedBuffer[i * CAPTURE_CHANNELS];
+                } else {
+                    visualBuffer[i] = pMappedBuffer[i];
+                }
+            }
+            ma_pcm_rb_commit_read(&rb, framesToRead);
+        }
+    } 
+}
 
-    if (framesAvailable < framesToRead) {
-        framesToRead = framesAvailable;
+void drawAudioWaveform(int screenWidth, int screenHeight) {
+    const int centerY = screenHeight / 2;
+    const float xStep = (float)screenWidth / VISUAL_BUFFER_SIZE;
+    
+    
+    // Draw each sample point
+    for (int i = 0; i < VISUAL_BUFFER_SIZE-1; i++) {
+        float x1 = i * xStep;
+        float x2 = (i + 1) * xStep;
+        float y1 = centerY - (visualBuffer[i] * WAVE_AMPLITUDE);
+        float y2 = centerY - (visualBuffer[i+1] * WAVE_AMPLITUDE);
+        
+        DrawLine((int)x1, (int)y1, (int)x2, (int)y2, RED);
     }
-
-    result = ma_pcm_rb_acquire_read(&rb, &framesToRead, (void**)&pMappedBuffer);
-    if (result != MA_SUCCESS || framesToRead == 0) {
-        return;
-    }
-
-    for (ma_uint32 i = 0; i < framesToRead; i++) {
-        printf("Sample %u: %f\n", i, pMappedBuffer[i]);
-    }
-
-    ma_pcm_rb_commit_read(&rb, framesToRead);
 }
 
 void drawWindow() {
@@ -155,12 +175,13 @@ void drawWindow() {
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        printSamples();
+        updateAudioVisualization();
+
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
 
-            DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+            drawAudioWaveform(screenWidth, screenHeight);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
