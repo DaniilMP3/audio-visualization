@@ -11,7 +11,7 @@ static ma_device device;
 static ma_pcm_rb rb;
 
 #define VISUAL_BUFFER_SIZE 1024
-#define WAVE_AMPLITUDE 100.0f 
+#define WAVE_AMPLITUDE 300.0f 
 
 static float visualBuffer[VISUAL_BUFFER_SIZE];
 
