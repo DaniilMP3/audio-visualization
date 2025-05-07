@@ -1,8 +1,8 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 #define RAYGUI_IMPLEMENTATION
-#include <raygui.h>
-#include <raylib.h>
+#include "raygui.h"
+#include "raylib.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
