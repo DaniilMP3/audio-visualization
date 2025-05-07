@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Iinclude -Ilib -Wall -Wextra -std=c11
 LDFLAGS = -lpthread -lm -lfftw3 -lraylib -ldl -lrt -lGL -lX11
 
-TARGET = my_program
+TARGET = audio_visualizer
 BUILD_DIR = build
 
 SRCS = $(wildcard src/*.c) main.c
