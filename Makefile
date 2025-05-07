@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Iinclude -Ilib -Wall -Wextra -std=c11
-LDFLAGS = -lpthread -lm -lfftw3 -lraylib -ldl -lrt -lGL -lX11
+LDFLAGS = lib/raylib/src/libraylib.a -lGL -lX11 -lpthread -lm -ldl
 
 TARGET = audio_visualizer
 BUILD_DIR = build
