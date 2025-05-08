@@ -1,0 +1,32 @@
+CC = x86_64-w64-mingw32-gcc
+CFLAGS = -Iinclude -Ilib -Ilib/raylib/src -Wall -Wextra -std=c11
+LDFLAGS = lib/raylib/src/libraylib.a -lopengl32 -lgdi32 -lwinmm 
+
+TARGET = audio_visualizer.exe
+BUILD_DIR = build_windows
+LOGFILE = $(BUILD_DIR)/build.log
+
+SRCS = $(wildcard src/*.c lib/*.c) main.c
+OBJS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRCS))
+
+.PHONY: all clean windows
+
+all: windows
+
+windows: $(BUILD_DIR)/$(TARGET)
+
+$(BUILD_DIR)/$(TARGET): $(OBJS)
+	@echo "Linking $@..." | tee -a $(LOGFILE)
+	@$(CC) -o $@ $^ $(LDFLAGS) >> $(LOGFILE) 2>&1
+
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
+	@mkdir -p $(dir $@)
+	@echo "Compiling $<..." | tee -a $(LOGFILE)
+	@$(CC) $(CFLAGS) -c $< -o $@ >> $(LOGFILE) 2>&1
+
+$(BUILD_DIR):
+	@mkdir -p $@
+	@echo "" > $(LOGFILE)
+
+clean:
+	rm -rf $(BUILD_DIR)
