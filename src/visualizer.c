@@ -1,11 +1,13 @@
-#define MINIAUDIO_IMPLEMENTATION
-#include "miniaudio.h"
-#define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
-#include "raylib.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+
+#include "raylib.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 
 #define CAPTURE_FORMAT ma_format_f32
 #define CAPTURE_CHANNELS 1
@@ -155,14 +157,11 @@ void DrawDeviceDropdown(int* activeIndex, bool* editMode)
     // Store current active index before dropdown interaction
     int previousActiveIndex = *activeIndex;
     
-    // Handle dropdown box interaction
-    // Note: GuiDropdownBox returns true when clicked to open/close, not when a selection changes
     if (GuiDropdownBox((Rectangle){ 0, 0, 400, 30 }, dropdownOptions, activeIndex, *editMode)) {
         *editMode = !(*editMode);  // Toggle dropdown state
         printf("Dropdown clicked - editMode toggled to: %s\n", *editMode ? "OPEN" : "CLOSED");
     }
 
-    // Check for selection change (only relevant when dropdown was open and is now closing)
     if (*editMode == false && previousActiveIndex != *activeIndex) {
         printf("New device selected: %d\n", *activeIndex);
     }
@@ -183,11 +182,10 @@ void updateAudioVisualization() {
     ma_uint32 framesToRead = VISUAL_BUFFER_SIZE;
     float* pMappedBuffer;
     framesAvailable = ma_pcm_rb_available_read(&rb);
-    // If we have enough frames, update the entire visual buffer
+    // Update only if all requested frames are available
     if (framesAvailable >= VISUAL_BUFFER_SIZE) {
         result = ma_pcm_rb_acquire_read(&rb, &framesToRead, (void**)&pMappedBuffer);
         if (result == MA_SUCCESS && framesToRead > 0) {
-            // For multichannel audio, we'll just take the first channel
             for (ma_uint32 i = 0; i < framesToRead; i++) {
                 if (CAPTURE_CHANNELS > 1) {
                     // Take only first channel if multichannel
@@ -204,7 +202,6 @@ void updateAudioVisualization() {
 void drawAudioWaveform(int screenWidth, int screenHeight) {
     const int centerY = screenHeight / 2;
     const float xStep = (float)screenWidth / VISUAL_BUFFER_SIZE;
-    // Draw each sample point
     for (int i = 0; i < VISUAL_BUFFER_SIZE-1; i++) {
         float x1 = i * xStep;
         float x2 = (i + 1) * xStep;
@@ -232,7 +229,6 @@ void start_visualization() {
     bool dropdownEditMode = false;
     bool deviceStarted = false;
 
-    // Main game loop
     while (!WindowShouldClose())
     {
         updateAudioVisualization();
